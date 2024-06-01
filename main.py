@@ -68,13 +68,32 @@ log = logging.getLogger(__name__)
 log.info(args)
 
 # Start Streamlit
-st.set_page_config(page_title="Exam Question Generator", page_icon="📚", layout="wide")
-with st.sidebar:
-    st.title('Model {}'.format(AIMODEL))
-st.header("Exam Question Magic Bot")
+# Set page configuration
+st.set_page_config(
+    page_title="Teacher Bot",
+    page_icon="🎓",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
+# Sidebar
+with st.sidebar:
+    st.image("./images/teacherbotlogo.jpg", width=200)  # Add an image logo if you have one
+    st.title('Model: {}'.format(AIMODEL))
+    st.write("""
+    Welcome to the Teacher Bot! This bot is designed to assist teachers in creating exam questions.
+    Simply upload a text and the bot will either answer questions related to the text or generate a set of exam questions for you.
+    """)
+
+# Main Page
+st.header("🎓 Teacher Bot 🎓")
+st.subheader("Your personal assistant for creating exam questions")
 
 def is_api_key_valid():
+    """
+    Check if the OpenAI key is valid
+
+    """
     try:
         openai.api_key = os.getenv("OPENAI_API_KEY")
         openai.models.list()
@@ -86,6 +105,10 @@ def is_api_key_valid():
 
 
 class ExamQuestionExtractor:
+    """
+    The exam question extractor main class
+
+    """
     def __init__(self):
         """
         Init the Exam Question Extractor
@@ -121,8 +144,8 @@ class ExamQuestionExtractor:
         """
         Load all docs from the defined folder or from a stored database into a vector store
 
-        :param load_storage:
-        :param embeddings:
+        :param load_storage: load storage stored in ./database
+        :param embeddings: Embeddings for the vector database
         :return:
         """
 
@@ -131,20 +154,20 @@ class ExamQuestionExtractor:
         else:
             # Import documents
             loader = DirectoryLoader(RESOURCE_PATH)
-            loadedDocuments = loader.load()
+            loaded_documents = loader.load()
 
-            print("Documents: {}", loadedDocuments)
+            print("Documents: {}", loaded_documents)
 
             # Get from the input documents
-            vectorstore = FAISS.from_documents(loadedDocuments, embeddings)
+            vectorstore = FAISS.from_documents(loaded_documents, embeddings)
             # Store database
             vectorstore.save_local(STORAGE_PATH)
 
         return vectorstore
 
-    def define_exam_prompt(self):
+    def define_exam_prompt(self) -> PromptTemplate:
         """
-        Defines the behaviour of the chat bot
+        Defines the behaviour of the chatbot.
 
         :return:
         """
@@ -182,12 +205,12 @@ class ExamQuestionExtractor:
 
         return prompt
 
-    def format_docs(self, docs):
+    def format_docs(self, docs) -> str:
         """
-        Adapt doc format
+        Adapt doc format to return the docs as a string
 
-        :param docs:
-        :return:
+        :param docs: docs list
+        :return: docs string
         """
         return "\n\n".join(doc.page_content for doc in docs)
 
@@ -195,9 +218,8 @@ class ExamQuestionExtractor:
         """
         Execute the program parts
 
-        :param load_storage:
-        :param load_query:
-        :return:
+        :param load_storage: load storage stored in ./database
+        :param load_query: load a predefined query for debugging purposes
         """
 
         # Load environment variables. They are used by openai
