@@ -161,3 +161,4 @@ cython_debug/
 
 .env
 .idea
+./samples_private
