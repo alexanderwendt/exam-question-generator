@@ -15,12 +15,12 @@
 # ==============================================================================
 
 #
-#Run with: streamlit run ./main.py -- -l
+# Run with: streamlit run ./main.py -- -l
 
-#To get it running, except of the required libraries, you also need
-#conda install -c conda-forge popplery
-#conda install -c conda-forge tesseract
-#set #os.environ['TESSDATA_PREFIX'] = "C:/Users/alexander.wendt/.conda/envs/examextractor/share/tessdata"
+# To get it running, except of the required libraries, you also need
+# conda install -c conda-forge popplery
+# conda install -c conda-forge tesseract
+# set #os.environ['TESSDATA_PREFIX'] = "C:/Users/alexander.wendt/.conda/envs/examextractor/share/tessdata"
 #
 
 import argparse
@@ -50,14 +50,15 @@ __status__ = 'Experimental'
 
 parser = argparse.ArgumentParser(description='Exam question extractor')
 parser.add_argument("-l", "--load_store", action='store_true', help="Load existing store", required=False)
-parser.add_argument("-q", "--load_query", action='store_true', help="Load a predefined query to test with", required=False)
+parser.add_argument("-q", "--load_query", action='store_true', help="Load a predefined query to test with",
+                    required=False)
 
 # CONSTANTS #
 STORAGE_PATH = "./database/vectorstore.pkl"
 RESOURCE_PATH = "./resources"
 OUTPUT_PATH = "./output"
 AIMODEL = "gpt-3.5-turbo"
-#EMBEDDINGSMODEL = "text-embedding-3-small" # or text-embedding-3-large, source: https://platform.openai.com/docs/guides/embeddings
+# EMBEDDINGSMODEL = "text-embedding-3-small" # or text-embedding-3-large, source: https://platform.openai.com/docs/guides/embeddings
 EMBEDDINGSMODEL = "text-embedding-3-large"
 
 args = parser.parse_args()
@@ -89,6 +90,7 @@ with st.sidebar:
 st.header("🎓 Teacher Bot 🎓")
 st.subheader("Your personal assistant for creating exam questions")
 
+
 def is_api_key_valid():
     """
     Check if the OpenAI key is valid
@@ -109,6 +111,7 @@ class ExamQuestionExtractor:
     The exam question extractor main class
 
     """
+
     def __init__(self):
         """
         Init the Exam Question Extractor
@@ -135,8 +138,8 @@ class ExamQuestionExtractor:
 
         log.debug("Create output path if it does not exist: {}".format(OUTPUT_PATH))
         os.makedirs(OUTPUT_PATH, exist_ok=True)
-        log.debug("Create database path if it does not exist: {}".format(STORAGE_PATH))
-        os.makedirs(STORAGE_PATH, exist_ok=True)
+        log.debug("Create database path if it does not exist: {}".format(os.path.dirname(STORAGE_PATH)))
+        os.makedirs(os.path.dirname(STORAGE_PATH), exist_ok=True)
         log.debug("Create resources path if it does not exist: {}".format(RESOURCE_PATH))
         os.makedirs(RESOURCE_PATH, exist_ok=True)
 
@@ -155,13 +158,15 @@ class ExamQuestionExtractor:
             # Import documents
             loader = DirectoryLoader(RESOURCE_PATH)
             loaded_documents = loader.load()
+            if len(loaded_documents) > 0:
+                print("Documents: {}", loaded_documents)
 
-            print("Documents: {}", loaded_documents)
-
-            # Get from the input documents
-            vectorstore = FAISS.from_documents(loaded_documents, embeddings)
-            # Store database
-            vectorstore.save_local(STORAGE_PATH)
+                # Get from the input documents
+                vectorstore = FAISS.from_documents(loaded_documents, embeddings)
+                # Store database
+                vectorstore.save_local(STORAGE_PATH)
+            else:
+                raise ImportError("No resource files were loaded")
 
         return vectorstore
 
@@ -238,10 +243,10 @@ class ExamQuestionExtractor:
 
         if load_query or query:
             if (load_query):
-                #query = "Generate me 5 questions about the Reading text of unit 8?"
-                #query = "How long did it take until her idea was found by the military?"
-                #query = "What does cheap mean in German?"
-                #query = "From the Words and Phrases, generate 5 words to translate"
+                # query = "Generate me 5 questions about the Reading text of unit 8?"
+                # query = "How long did it take until her idea was found by the military?"
+                # query = "What does cheap mean in German?"
+                # query = "From the Words and Phrases, generate 5 words to translate"
                 query = "Generate 3 exam questions about Hedy Lamarr based on the provided text"
 
             # getting only the chunks that are similar to the query for llm to produce the output
@@ -268,6 +273,7 @@ if __name__ == "__main__":
     """
     I am your exam question generator.
     """
+    # streamlit run ./main.py -- -l
 
     log.info("=== Start Exam Question Extractor ===")
 
